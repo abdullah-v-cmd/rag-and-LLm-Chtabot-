@@ -22,7 +22,8 @@ db.save_local("faiss_index")
 retriever = db.as_retriever(search_kwargs={"k": 3})
 llm=ChatOpenAI(
     model_name="gpt-3.5-turbo",
-    temperature=0
+    temperature=0,
+    openai_api_key="Your key"
 )
 
 qa = RetrievalQA.from_chain_type(
@@ -33,4 +34,5 @@ qa = RetrievalQA.from_chain_type(
 query = "What is Rag chatbot?"
 result = qa.run(query)
 print("Answer:", result)
+
 
