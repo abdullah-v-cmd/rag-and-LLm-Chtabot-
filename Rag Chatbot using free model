@@ -37,11 +37,10 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 
 hf_pipe = pipeline(
-    "text2text-generation",
-    model=model,
-    tokenizer=tokenizer,
+    task="text-generation",
+    model="google/flan-t5-base",
     max_new_tokens=256,
-    temperature=0
+    temperature=0.2
 )
 
 llm = HuggingFacePipeline(pipeline=hf_pipe)
