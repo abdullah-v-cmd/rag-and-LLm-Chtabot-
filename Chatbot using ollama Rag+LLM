@@ -1,0 +1,62 @@
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain.chains import RetrievalQA
+
+# Ollama LLM
+from ollama import Ollama
+from langchain_community.llms import Ollama as OllamaLLM
+
+# 1️⃣ Load PDF
+pdf_path = r"D:\Rag and LLm\sodapdf-converted.pdf"
+loader = PyPDFLoader(pdf_path)
+docs = loader.load()
+print(f"[INFO] Loaded {len(docs)} documents from PDF.")
+
+# 2️⃣ Split text into chunks
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=200
+)
+documents = splitter.split_documents(docs)
+print(f"[INFO] Split into {len(documents)} chunks.")
+
+# 3️⃣ Create embeddings
+embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
+)
+
+# 4️⃣ Build FAISS vector store
+db = FAISS.from_documents(documents, embeddings)
+retriever = db.as_retriever(search_kwargs={"k": 3})
+print("[INFO] FAISS vector store ready.")
+
+# 5️⃣ Load Ollama LLM
+# Ollama runs locally, no Transformers needed
+ollama_client = Ollama()
+llm = OllamaLLM(client=ollama_client, model="llama2")  # You can replace "llama2" with your preferred Ollama model
+print("[INFO] Ollama LLM loaded.")
+
+# 6️⃣ Create RAG QA chain
+qa = RetrievalQA.from_chain_type(
+    llm=llm,
+    retriever=retriever,
+    return_source_documents=True
+)
+
+# 7️⃣ Interactive loop
+print("\n[INFO] You can now ask questions. Type 'exit' to quit.")
+while True:
+    query = input("\nYour question: ")
+    if query.lower() in ["exit", "quit"]:
+        print("[INFO] Exiting chatbot. Goodbye!")
+        break
+
+    result = qa.invoke({"query": query})
+    print("\n[ANSWER]:")
+    print(result["result"])
+
+    print("\n[SOURCE DOCUMENTS]:")
+    for i, doc in enumerate(result["source_documents"]):
+        print(f"Document {i+1}: {doc.metadata.get('source', 'unknown')}")
