@@ -1,0 +1,5 @@
+# Uploads Directory
+
+This directory stores uploaded documents.
+
+Files are saved with the format: `{document_id}_{original_filename}`
