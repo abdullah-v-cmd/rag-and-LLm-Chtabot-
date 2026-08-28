@@ -1,0 +1,5 @@
+# Vector Database Directory
+
+This directory stores the FAISS vector database index.
+
+The vector store is automatically created when documents are processed.
